@@ -1,4 +1,5 @@
 import React from 'react'
+import countryData from '../datasets/CI_aggregated.json'
 import { classnames } from '../utils/general'
 
 function CarbonEmission() {
@@ -11,9 +12,17 @@ function CarbonEmission() {
   const [carbon, setCarbon] = React.useState()
   const [showCarbon, setShowCarbon] = React.useState(false)
 
+
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!runtime || !cores || !memory || !tdpc || !country) { 
+      alert('Please fill out all fields')
+      return
+    }
     setShowCarbon(false)
+    // const carbon = (runtime * (TDP + memory * PM) * PUE * CI of area) / 1000;
+    // Pm = 0.375 w/gb
+    // pue =1.67
     const newCarbon = (runtime * (cores * tdpc + memory * 0.3725) * 1.67 * 708.2) / 1000;
     setCarbon(newCarbon)
     setShowCarbon(true)
@@ -55,13 +64,22 @@ function CarbonEmission() {
               value={memory}
             />
 
-            <input
-              type="text"
-              placeholder="Enter your Country"
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-              onChange={(e) => setCountry(e.target.value)}
-              value={country}
-            />
+            {/* Dropdown */}
+            <div className="relative inline-block w-full text-gray-700">
+              <select
+                // className="w-full h-10 pl-3 pr-6 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline"
+                className='w-full h-10 pl-3 pr-6 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent'
+                placeholder="Regular input" 
+                onChange={(e) => setCountry(e.target.value)}
+                value={country}
+              >
+                {countryData.map((country) => (
+                  <option key={country.country} value={country.country}>
+                    {country.Region}
+                  </option> 
+                  ))}
+              </select>
+            </div>
 
             <button
               className={classnames(
