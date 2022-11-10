@@ -14,6 +14,8 @@ import LanguagesDropdown from "./LanguagesDropdown";
 
 
 const Landing = () => {
+  const scollToRef = React.useRef();
+
   const [language, setLanguage] = useState(languageOptions[0]);
   const [theme, setTheme] = useState("cobalt");
 
@@ -25,6 +27,7 @@ const Landing = () => {
   const [outputDetailsright, setOutputDetailsright] = useState(null);
   const [processingright, setProcessingright] = useState(null);
 
+  const [carbonCompare, setCarbonCompare] = useState();
   const [processingCompare, setProcessingCompare] = useState(null);
 
   const onSelectChange = (sl) => {
@@ -35,19 +38,28 @@ const Landing = () => {
   const handleCompare = async () => {
     setProcessingCompare(true);
     try {
-      handleCompileleft();
-      handleCompileright();
-      if (outputDetailsleft?.time < outputDetailsright?.time) {
-        toast.success("Left is faster");
-      }
-      else {
-        toast.error("Right is faster");
-      }
-    } catch (err) {
-      console.log("err...", err);
+      const res = await axios.post("https://carbon-emmision-api.herokuapp.com/api/compare", {
+        data: [
+          codeleft,
+          coderight,
+        ],
+      });
+      console.log("res...", res);
+      setCarbonCompare(res.data);
+      console.log("carbonCompare...", carbonCompare);
       setProcessingCompare(false);
     }
-  };
+    catch (err) {
+      console.log("err...", err);
+      setProcessingCompare(false);
+      toast.error("Something went wrong");
+    }
+
+    setTimeout(() => {
+      scollToRef.current.scrollIntoView({ behavior: 'smooth' })
+    }, 500)
+
+  }
 
   //  Left part
   const onChangeleft = (action, data) => {
@@ -311,31 +323,31 @@ const Landing = () => {
             theme={theme.value}
           />
 
-          {/* Left output */}
-          <div className="right-container flex flex-shrink-0 w-[100%] flex-col">
-            <OutputWindow outputDetails={outputDetailsleft} />
+          <div className="flex flex-col items-end">
 
-            <div className="flex flex-col items-end">
+            <div className="flex flex-row space-x-4 items-center">
+              <button
+                onClick={handleCompileleft}
+                disabled={!codeleft}
+                className={classnames(
+                  "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
+                  !codeleft ? "opacity-50" : ""
+                )}
+              >
+                {processingleft ? "Processing..." : "Compile and Execute"}
+              </button>
 
-              <div className="flex flex-row space-x-4 items-center">
-                <button
-                  onClick={handleCompileleft}
-                  disabled={!codeleft}
-                  className={classnames(
-                    "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
-                    !codeleft ? "opacity-50" : ""
-                  )}
-                >
-                  {processingleft ? "Processing..." : "Compile and Execute"}
-                </button>
-
-              </div>
             </div>
-
-            {outputDetailsleft && <OutputDetails outputDetails={outputDetailsleft} />}
-
           </div>
+          {/* Left output */}
+          {outputDetailsleft &&
+            <div className="right-container flex flex-shrink-0 w-[100%] flex-col">
+              <OutputWindow outputDetails={outputDetailsleft} />
+
+              <OutputDetails outputDetails={outputDetailsleft} />
+            </div>}
         </div>
+
 
         {/* Code editor right */}
         <div className="flex flex-col w-full h-full justify-start items-end">
@@ -345,30 +357,31 @@ const Landing = () => {
             language={language?.value}
             theme={theme.value}
           />
-          {/* Right output */}
-          <div className="right-container flex flex-shrink-0 w-[100%] flex-col">
-            <OutputWindow outputDetails={outputDetailsright} />
+          <div className="flex flex-col items-end">
 
-            <div className="flex flex-col items-end">
+            <div className="flex flex-row space-x-4 items-center">
+              <button
+                onClick={handleCompileright}
+                disabled={!coderight}
+                className={classnames(
+                  "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
+                  !coderight ? "opacity-50" : ""
+                )}
+              >
+                {processingright ? "Processing..." : "Compile and Execute"}
+              </button>
 
-              <div className="flex flex-row space-x-4 items-center">
-                <button
-                  onClick={handleCompileright}
-                  disabled={!coderight}
-                  className={classnames(
-                    "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
-                    !coderight ? "opacity-50" : ""
-                  )}
-                >
-                  {processingright ? "Processing..." : "Compile and Execute"}
-                </button>
-
-              </div>
             </div>
-
-            {outputDetailsright && <OutputDetails outputDetails={outputDetailsright} />}
-
           </div>
+          {/* Right output */}
+          {outputDetailsright &&
+            <div className="right-container flex flex-shrink-0 w-[100%] flex-col">
+              <OutputWindow outputDetails={outputDetailsright} />
+
+
+              <OutputDetails outputDetails={outputDetailsright} />
+            </div>
+          }
         </div>
       </div>
       <div className="flex flex-row justify-center items-center">
@@ -382,6 +395,28 @@ const Landing = () => {
         >
           {processingCompare ? "Processing..." : "Compare"}
         </button>
+      </div>
+
+      <div ref={scollToRef}>
+        {carbonCompare &&
+          <>
+            <div className="flex flex-row justify-center items-center mt-10 scale-150">
+              <span className="font-semibold px-100 py-1 rounded-md bg-gray-100 mx-10 ">
+                Carbon Emissions
+              </span>
+            </div>
+            <div className="flex flex-row justify-center items-center mt-10 scale-150">
+              <div className="font-semibold px-2 py-1 rounded-md bg-gray-100 mx-10">
+                Emissions of Code 1 = {carbonCompare?.energy1} gCO{<sub>2</sub>}e
+              </div>
+
+              <div className="font-semibold px-2 py-1 rounded-md bg-gray-100 ">
+                Emissions of Code 2 = {carbonCompare?.energy2} gCO{<sub>2</sub>}e
+              </div>
+          </div>
+          {carbonCompare?.ratio>1 ? <p>Code 2 is better</p> : <p>Code 1 is better</p>}
+          </>
+        }
       </div>
     </>
   );
