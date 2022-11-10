@@ -413,8 +413,20 @@ const Landing = () => {
               <div className="font-semibold px-2 py-1 rounded-md bg-gray-100 ">
                 Emissions of Code 2 = {carbonCompare?.energy2} gCO{<sub>2</sub>}e
               </div>
-          </div>
-          {carbonCompare?.ratio>1 ? <p>Code 2 is better</p> : <p>Code 1 is better</p>}
+            </div>
+            {carbonCompare?.ratio >= 1 ?
+              <div className="flex flex-row justify-center items-center mt-10 scale-150">
+                <div className="font-semibold px-2 py-1 rounded-md bg-gray-100 mx-10">
+                  Code 2 saves {carbonCompare?.energy1 - carbonCompare?.energy2} gCO{<sub>2</sub>}e
+                </div>
+              </div>
+              :
+              <div className="flex flex-row justify-center items-center mt-10 scale-150">
+                <div className="font-semibold px-2 py-1 rounded-md bg-gray-100 mx-10">
+                  Code 1 saves {carbonCompare?.energy2 - carbonCompare?.energy1} gCO{<sub>2</sub>}e
+                </div>
+              </div>
+            }
           </>
         }
       </div>
